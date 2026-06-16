@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Real Estate Lead Scoring & Automation</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome for Premium Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="glass-bg"></div>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="brand">
+                <div class="logo">
+                    <i class="fa-solid fa-brain-circuit text-gradient"></i>
+                </div>
+                <h2>LeadScorer<span class="text-gradient">.AI</span></h2>
+            </div>
+            
+            <nav class="nav-menu">
+                <button class="nav-item active" id="nav-dashboard">
+                    <i class="fa-solid fa-chart-pie"></i> Tổng quan
+                </button>
+                <button class="nav-item" id="nav-leads">
+                    <i class="fa-solid fa-list-check"></i> Danh sách khách hàng
+                </button>
+                <button class="nav-item" id="nav-settings">
+                    <i class="fa-solid fa-sliders"></i> Cài đặt AI
+                </button>
+            </nav>
+
+            <div class="sidebar-footer">
+                <div class="status-indicator">
+                    <span class="dot active"></span>
+                    <span>Hệ thống sẵn sàng</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Header -->
+            <header class="main-header">
+                <div class="header-title">
+                    <h1 id="page-title">Bảng điều khiển</h1>
+                    <p id="page-subtitle">Hệ thống phân tích và chấm điểm khách hàng tiềm năng bằng AI</p>
+                </div>
+                <div class="header-actions">
+                    <button class="btn btn-secondary" id="btn-import-sheet">
+                        <i class="fa-solid fa-rotate"></i> Đồng bộ Sheets
+                    </button>
+                    <button class="btn btn-primary" id="btn-export-excel">
+                        <i class="fa-solid fa-file-excel"></i> Xuất Báo Cáo
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard View -->
+            <section class="view-section active" id="view-dashboard">
+                <!-- Stats Overview -->
+                <div class="stats-grid">
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon icon-blue">
+                            <i class="fa-solid fa-users"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Tổng Khách Hàng</h3>
+                            <div class="value" id="stat-total">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon icon-purple">
+                            <i class="fa-solid fa-crown"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Khách Hàng VIP</h3>
+                            <div class="value" id="stat-vip">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon icon-green">
+                            <i class="fa-solid fa-thumbs-up"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Tiềm Năng Cao</h3>
+                            <div class="value" id="stat-potential">0</div>
+                        </div>
+                    </div>
+                    <div class="stat-card glass-panel">
+                        <div class="stat-icon icon-red">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Không Tiềm Năng</h3>
+                            <div class="value" id="stat-junk">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Main dashboard layout -->
+                <div class="dashboard-layout">
+                    <!-- Progress Card -->
+                    <div class="glass-panel progress-card">
+                        <h3>Trạng Thái Chấm Điểm AI</h3>
+                        <div class="progress-details">
+                            <div class="progress-bar-container">
+                                <div class="progress-bar-fill" id="scoring-progress-bar" style="width: 0%"></div>
+                            </div>
+                            <div class="progress-text">
+                                <span id="scoring-progress-text">Đã chấm điểm: 0 / 0 (0%)</span>
+                            </div>
+                        </div>
+                        <div class="action-row">
+                            <button class="btn btn-primary btn-glow" id="btn-run-all-scoring">
+                                <i class="fa-solid fa-bolt"></i> Bắt đầu chấm điểm hàng loạt
+                            </button>
+                            <button class="btn btn-secondary" id="btn-stop-scoring" style="display: none;">
+                                <i class="fa-solid fa-stop"></i> Dừng lại
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Leads View -->
+            <section class="view-section" id="view-leads">
+                <!-- Filters & Search Bar -->
+                <div class="filter-panel glass-panel">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-input" placeholder="Tìm tên khách hàng, SĐT, nhu cầu...">
+                    </div>
+                    <div class="filter-selects">
+                        <select id="filter-classification">
+                            <option value="">Tất cả phân loại</option>
+                            <option value="VIP">VIP</option>
+                            <option value="Tiềm năng">Tiềm năng</option>
+                            <option value="Trung bình">Trung bình</option>
+                            <option value="Không tiềm năng">Không tiềm năng</option>
+                            <option value="Chưa chấm">Chưa chấm điểm</option>
+                        </select>
+                        <select id="filter-status">
+                            <option value="">Tất cả trạng thái</option>
+                            <option value="Chờ duyệt">Chờ duyệt</option>
+                            <option value="Đồng ý">Đồng ý</option>
+                            <option value="Từ chối">Từ chối</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Table/Card view -->
+                <div class="table-container glass-panel">
+                    <table class="leads-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Khách Hàng</th>
+                                <th>Số Điện Thoại</th>
+                                <th>Nhu Cầu Chi Tiết</th>
+                                <th>Điểm Số</th>
+                                <th>Phân Loại</th>
+                                <th>Trạng Thái Duyệt</th>
+                                <th>Thao Tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="leads-tbody">
+                            <!-- Table rows injected via JS -->
+                        </tbody>
+                    </table>
+                    <div class="pagination-container" id="pagination-controls">
+                        <!-- Pagination controls -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Settings View -->
+            <section class="view-section" id="view-settings">
+                <div class="glass-panel settings-form">
+                    <h3>Cấu Hình API & Dữ Liệu</h3>
+                    <div class="form-group">
+                        <label for="settings-gemini-key">Gemini API Key</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="settings-gemini-key" placeholder="Nhập API Key của bạn...">
+                            <button type="button" class="btn-toggle-password" id="btn-toggle-key">
+                                <i class="fa-solid fa-eye"></i>
+                            </button>
+                        </div>
+                        <p class="help-text">API Key được lưu tại trình duyệt của bạn và dùng trực tiếp để chấm điểm.</p>
+                    </div>
+                    <div class="form-group">
+                        <label for="settings-sheet-url">Google Sheets Export URL (CSV)</label>
+                        <input type="text" id="settings-sheet-url" value="https://docs.google.com/spreadsheets/d/16tCAf_qqtgYZxoumYQKMEOdBhKE0wg5A/edit?gid=1542775777">
+                    </div>
+                    <button class="btn btn-primary" id="btn-save-settings">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu Cài Đặt
+                    </button>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Review Modal (Human-in-the-loop) -->
+    <div class="modal-backdrop" id="review-modal" style="display: none;">
+        <div class="modal-card glass-panel">
+            <div class="modal-header">
+                <h2>Chi Tiết Duyệt Khách Hàng</h2>
+                <button class="close-btn" id="btn-close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="modal-grid">
+                    <div class="details-section">
+                        <h3>Thông Tin Cơ Bản</h3>
+                        <p><strong>Họ Tên:</strong> <span id="modal-name">Phan Văn Hoa</span></p>
+                        <p><strong>Số Điện Thoại:</strong> <span id="modal-phone">0894782782</span></p>
+                        <div class="desc-box">
+                            <strong>Nhu cầu chi tiết:</strong>
+                            <p id="modal-desc">...</p>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-result-section">
+                        <h3>Kết Quả Chấm Điểm AI</h3>
+                        <div class="score-badge-container">
+                            <div class="ai-score" id="modal-score">-</div>
+                            <div class="ai-class" id="modal-class">Chưa chấm điểm</div>
+                        </div>
+                        
+                        <div class="analysis-box">
+                            <p><strong>Tiêu chí cộng:</strong> <span id="modal-positives" class="text-green">-</span></p>
+                            <p><strong>Tiêu chí trừ:</strong> <span id="modal-negatives" class="text-red">-</span></p>
+                            <p><strong>Ngân sách:</strong> <span id="modal-budget">-</span></p>
+                            <p><strong>Loại hình:</strong> <span id="modal-type">-</span></p>
+                            <p><strong>Khu vực:</strong> <span id="modal-location">-</span></p>
+                            <p><strong>Mức độ cấp thiết:</strong> <span id="modal-urgency">-</span></p>
+                            <p><strong>Giải thích chi tiết:</strong></p>
+                            <p id="modal-explanation" class="explanation-text">...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="human-action-section">
+                    <h3>Phê Duyệt & Điều Chỉnh</h3>
+                    <div class="action-inputs">
+                        <div class="form-group">
+                            <label>Trạng Thái Duyệt</label>
+                            <div class="status-btn-group">
+                                <button class="btn btn-status" data-status="Chờ duyệt">Chờ duyệt</button>
+                                <button class="btn btn-status btn-agree" data-status="Đồng ý">Đồng ý (Phù hợp)</button>
+                                <button class="btn btn-status btn-reject" data-status="Từ chối">Từ chối (Rác)</button>
+                            </div>
+                        </div>
+                        <div class="adjustments-grid">
+                            <div class="form-group">
+                                <label for="adjust-score">Điều chỉnh điểm số</label>
+                                <input type="number" id="adjust-score" min="0" max="100">
+                            </div>
+                            <div class="form-group">
+                                <label for="adjust-class">Điều chỉnh phân loại</label>
+                                <select id="adjust-class">
+                                    <option value="VIP">VIP</option>
+                                    <option value="Tiềm năng">Tiềm năng</option>
+                                    <option value="Trung bình">Trung bình</option>
+                                    <option value="Không tiềm năng">Không tiềm năng</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="btn-modal-cancel">Hủy</button>
+                <button class="btn btn-primary" id="btn-modal-save">Xác Nhận Kết Quả</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast -->
+    <div id="toast-container"></div>
+
+    <script src="app.js"></script>
+</body>
+</html>
