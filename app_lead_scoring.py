@@ -139,23 +139,24 @@ def score_lead(row):
         
     score = max(0, min(100, score))
     
+    # Classification matching "Nóng", "Ấm", "Lạnh", "Rác"
     if score >= 90:
-        classification = "VIP"
+        classification = "Nóng"
     elif score >= 60:
-        classification = "Tiềm năng"
+        classification = "Ấm"
     elif score == 50:
-        classification = "Trung bình"
+        classification = "Lạnh"
     else:
-        classification = "Không tiềm năng"
+        classification = "Rác"
         
     reasons = []
     if matched_positives:
-        reasons.append("Khách hàng thỏa mãn các tiêu chí tiềm năng: " + ", ".join(matched_positives))
+        reasons.append("Cộng điểm: " + ", ".join(matched_positives))
     if matched_negatives:
-        reasons.append("Phát hiện yếu tố không tiềm năng: " + ", ".join(matched_negatives))
+        reasons.append("Trừ điểm: " + ", ".join(matched_negatives))
         
     if not reasons:
-        explanation = "Khách hàng có nhu cầu trung bình, chưa khớp các tiêu chí VIP hoặc các dấu hiệu rác."
+        explanation = "Nhu cầu trung bình, giữ nguyên điểm."
     else:
         explanation = ". ".join(reasons)
         
@@ -177,21 +178,18 @@ def run_streamlit():
         .subtitle { color: #8b949e; font-size: 1rem; margin-bottom: 1.5rem; }
         div[data-testid="stMetricValue"] { font-size: 2.2rem; font-weight: 700; color: #58a6ff; text-align: center; }
         div[data-testid="stMetricLabel"] { text-align: center; color: #8b949e; font-size: 0.9rem; }
+        .sub-header { font-size: 1.5rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; color: #c9d1d9; }
+        .desc-text { color: #8b949e; font-size: 0.95rem; margin-bottom: 1rem; }
     </style>
     """, unsafe_allow_html=True)
 
     if 'processed_data' not in st.session_state:
         st.session_state.processed_data = None
 
+    # Sidebar settings
     st.sidebar.markdown("### ⚙️ Cấu hình hệ thống")
     sheet_url_input = st.sidebar.text_input("Đường dẫn Google Sheets (CSV Export)", value=SHEET_URL)
-
-    st.sidebar.markdown("### 🔍 Bộ lọc hiển thị")
-    search_query = st.sidebar.text_input("Tìm kiếm theo Tên / Số điện thoại", "")
-
-    class_options = ["VIP", "Tiềm năng trung bình", "Không tiềm năng"]
-    filter_classes = st.sidebar.multiselect("Phân loại của AI", options=class_options, default=class_options)
-
+    
     st.sidebar.markdown("---")
     st.sidebar.markdown("""
     ### 💡 Quy tắc chấm điểm chính:
@@ -202,12 +200,12 @@ def run_streamlit():
     st.markdown('<div class="main-title">AI LEAD SCORING DASHBOARD</div>', unsafe_allow_html=True)
     st.markdown('<div class="subtitle">Bảng điều khiển phân tích & chấm điểm khách hàng tiềm năng tự động</div>', unsafe_allow_html=True)
 
+    # Load button
     if st.button("📊 Tải dữ liệu & Chấm điểm từ Google Sheet", type="primary"):
         with st.spinner("Đang xử lý dữ liệu..."):
             try:
                 response = requests.get(sheet_url_input)
                 response.raise_for_status()
-                # Decode explicitly using utf-8-sig to handle BOM and ensure correct Vietnamese text
                 csv_text = response.content.decode('utf-8-sig')
                 csv_data = io.StringIO(csv_text)
                 df = pd.read_csv(csv_data)
@@ -222,8 +220,6 @@ def run_streamlit():
                 
                 for idx, row in df.iterrows():
                     score, classification, pos, neg, exp = score_lead(row)
-                    if classification == "Trung bình" or classification == "Tiềm năng":
-                        classification = "Tiềm năng trung bình"
                     scores.append(score)
                     classifications.append(classification)
                     positives.append(pos)
@@ -245,56 +241,81 @@ def run_streamlit():
                 st.error(f"Lỗi khi tải hoặc chấm điểm: {str(e)}")
 
     if st.session_state.processed_data is not None:
-        df_active = st.session_state.processed_data.copy()
-        
-        if search_query:
-            search_query_lower = search_query.lower()
-            df_active = df_active[
-                df_active["ten_khach"].str.lower().str.contains(search_query_lower) |
-                df_active["sdt"].astype(str).str.contains(search_query_lower)
-            ]
-            
-        if filter_classes:
-            df_active = df_active[df_active["Phân Loại"].isin(filter_classes)]
-            
-        total_leads = len(df_active)
-        vip_leads = len(df_active[df_active["Phân Loại"] == "VIP"])
-        potential_leads = len(df_active[df_active["Phân Loại"] == "Tiềm năng trung bình"])
-        junk_leads = len(df_active[df_active["Phân Loại"] == "Không tiềm năng"])
+        # Show Metrics
+        total_leads = len(st.session_state.processed_data)
+        nong_count = len(st.session_state.processed_data[st.session_state.processed_data["Phân Loại"] == "Nóng"])
+        am_count = len(st.session_state.processed_data[st.session_state.processed_data["Phân Loại"] == "Ấm"])
+        rac_count = len(st.session_state.processed_data[st.session_state.processed_data["Phân Loại"] == "Rác"])
         
         col1, col2, col3, col4 = st.columns(4)
         with col1: st.metric("TỔNG KHÁCH HÀNG", total_leads)
-        with col2: st.metric("KHÁCH HÀNG VIP", vip_leads)
-        with col3: st.metric("TIỀM NĂNG TRUNG BÌNH", potential_leads)
-        with col4: st.metric("KHÔNG TIỀM NĂNG", junk_leads)
-            
-        st.markdown("### 📊 Biểu đồ phân tích trực quan")
-        col_chart1, col_chart2 = st.columns(2)
-        with col_chart1:
-            st.markdown("#### 📈 Tỉ lệ phân loại Khách hàng")
-            class_counts = df_active["Phân Loại"].value_counts().reset_index()
-            class_counts.columns = ["Phân loại", "Số lượng"]
-            st.bar_chart(class_counts.set_index("Phân loại"))
-        with col_chart2:
-            st.markdown("#### 📈 Phân bộ điểm số tiềm năng")
-            score_counts = df_active["Điểm Số"].value_counts().reset_index()
-            score_counts.columns = ["Điểm Số", "Số lượng"]
-            st.bar_chart(score_counts.set_index("Điểm Số"))
+        with col2: st.metric("KHÁCH HÀNG NÓNG", nong_count)
+        with col3: st.metric("KHÁCH HÀNG ẤM", am_count)
+        with col4: st.metric("KHÁCH HÀNG RÁC", rac_count)
+        
+        st.markdown("---")
+        
+        # 2. Bảng Kiểm Duyệt Section
+        st.markdown('<div class="sub-header">📝 2. Bảng Kiểm Duyệt (Dành cho Kế Toán / Sales)</div>', unsafe_allow_html=True)
+        st.markdown('<div class="desc-text">Hệ thống đã tự động gán Từ khóa (Tags) và Gợi ý hành động. Bạn có thể dùng bộ lọc dưới đây để tìm và phê duyệt khách hàng nhanh chóng.</div>', unsafe_allow_html=True)
+        
+        st.markdown("#### 🔎 Bộ Lọc Dữ Liệu Thông Minh")
+        col_filter1, col_filter2 = st.columns(2)
+        
+        with col_filter1:
+            filter_classes = st.multiselect(
+                "Lọc theo Phân loại AI:",
+                options=["Nóng", "Ấm", "Lạnh", "Rác"],
+                default=["Nóng", "Ấm", "Lạnh", "Rác"]
+            )
+        with col_filter2:
+            filter_statuses = st.multiselect(
+                "Lọc theo Trạng thái duyệt:",
+                options=["Chờ duyệt", "Đồng ý", "Từ chối"],
+                default=["Chờ duyệt", "Đồng ý", "Từ chối"]
+            )
             
         st.markdown("---")
-        st.markdown("### 📋 Danh sách chi tiết khách hàng và Phê duyệt")
         
+        # Action buttons
+        st.markdown("#### ⚡ Hành Động Nhanh")
+        col_btn1, col_btn2, col_btn_empty = st.columns([1.5, 1.5, 3])
+        
+        with col_btn1:
+            if st.button("✅ Phê duyệt toàn bộ khách Nóng & Ấm", type="primary", use_container_width=True):
+                # Update status of Nong & Am to Dong y
+                mask = st.session_state.processed_data["Phân Loại"].isin(["Nóng", "Ấm"])
+                st.session_state.processed_data.loc[mask, "Trạng Thái Duyệt"] = "Đồng ý"
+                st.toast("Đã phê duyệt toàn bộ khách hàng Nóng & Ấm!")
+                st.rerun()
+                
+        with col_btn2:
+            if st.button("🗑️ Loại bỏ toàn bộ khách Rác", use_container_width=True):
+                # Update status of Rac to Tu choi
+                mask = st.session_state.processed_data["Phân Loại"] == "Rác"
+                st.session_state.processed_data.loc[mask, "Trạng Thái Duyệt"] = "Từ chối"
+                st.toast("Đã từ chối toàn bộ khách hàng Rác!")
+                st.rerun()
+                
+        # Apply filters to view
+        df_active = st.session_state.processed_data.copy()
+        if filter_classes:
+            df_active = df_active[df_active["Phân Loại"].isin(filter_classes)]
+        if filter_statuses:
+            df_active = df_active[df_active["Trạng Thái Duyệt"].isin(filter_statuses)]
+            
+        # Display data editor
         edited_df = st.data_editor(
             df_active,
             column_config={
-                "id": st.column_config.NumberColumn("ID", disabled=True),
+                "id": st.column_config.NumberColumn("Mã KH", disabled=True),
                 "ten_khach": st.column_config.TextColumn("Tên Khách Hàng", disabled=True),
                 "sdt": st.column_config.TextColumn("Số Điện Thoại", disabled=True),
-                "nhu_cau_mo_ta": st.column_config.TextColumn("Mô tả nhu cầu", disabled=True, width="large"),
-                "Điểm Số": st.column_config.NumberColumn("Điểm Số", min_value=0, max_value=100),
-                "Phân Loại": st.column_config.SelectboxColumn("Phân Loại", options=["VIP", "Tiềm năng trung bình", "Không tiềm năng"]),
+                "nhu_cau_mo_ta": st.column_config.TextColumn("Ghi chú Nhu cầu", disabled=True, width="large"),
+                "Điểm Số": st.column_config.NumberColumn("Điểm AI", min_value=0, max_value=100),
+                "Phân Loại": st.column_config.SelectboxColumn("Phân loại", options=["Nóng", "Ấm", "Lạnh", "Rác"]),
                 "Trạng Thái Duyệt": st.column_config.SelectboxColumn("Trạng Thái Duyệt", options=["Chờ duyệt", "Đồng ý", "Từ chối"]),
-                "Tiêu Chí Cộng": st.column_config.TextColumn("Tiêu Chí Cộng", disabled=True),
+                "Tiêu Chí Cộng": st.column_config.TextColumn("Từ khóa (Tags)", disabled=True),
                 "Tiêu Chí Trừ": st.column_config.TextColumn("Tiêu Chí Trừ", disabled=True),
                 "Giải Thích Chi Tiết": st.column_config.TextColumn("Giải thích", disabled=True),
             },
@@ -304,6 +325,7 @@ def run_streamlit():
             key="data_editor"
         )
         
+        # Save edits back
         if not edited_df.equals(df_active):
             for idx, row in edited_df.iterrows():
                 lead_id = row["id"]
@@ -311,6 +333,7 @@ def run_streamlit():
                     row["Điểm Số"], row["Phân Loại"], row["Trạng Thái Duyệt"]
                 ]
                 
+        # Export Excel Button
         buffer = io.BytesIO()
         with pd.ExcelWriter(buffer, engine="openpyxl") as writer:
             st.session_state.processed_data.to_excel(writer, index=False, sheet_name="Leads Report")
@@ -321,6 +344,7 @@ def run_streamlit():
                 worksheet.column_dimensions[col_letter].width = min(max(max_len + 3, 10), 50)
         buffer.seek(0)
         
+        st.markdown(" ")
         st.download_button(
             label="📥 Tải xuống báo cáo Excel hoàn chỉnh",
             data=buffer,
@@ -382,12 +406,14 @@ def run_cli():
         stats = df["Phân Loại"].value_counts()
         ascii_stats = {}
         for idx, val in stats.items():
-            if idx == "Không tiềm năng":
-                ascii_stats["Khong tiem nang"] = val
-            elif idx == "Tiềm năng":
-                ascii_stats["Tiem nang"] = val
-            elif idx == "Trung bình":
-                ascii_stats["Trung binh"] = val
+            if idx == "Rác":
+                ascii_stats["Rac"] = val
+            elif idx == "Nóng":
+                ascii_stats["Nong"] = val
+            elif idx == "Ấm":
+                ascii_stats["Am"] = val
+            elif idx == "Lạnh":
+                ascii_stats["Lanh"] = val
             else:
                 ascii_stats[idx] = val
         for k, v in ascii_stats.items():
@@ -398,8 +424,6 @@ def run_cli():
         print(f"ERROR: {str(e)}")
 
 if __name__ == "__main__":
-    # If run through streamlit command line tool (which executes scripts differently)
-    # or if we detect streamlit is importing/running this script
     if st.runtime.exists():
         run_streamlit()
     else:
