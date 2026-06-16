@@ -171,15 +171,68 @@ def run_streamlit():
         initial_sidebar_state="expanded"
     )
 
+    # Clean high-contrast slate theme styling
     st.markdown("""
     <style>
-        .stApp { background-color: #0d1117; color: #c9d1d9; }
-        .main-title { font-size: 2.2rem; font-weight: 800; color: #58a6ff; margin-bottom: 0.2rem; }
-        .subtitle { color: #8b949e; font-size: 1rem; margin-bottom: 1.5rem; }
-        div[data-testid="stMetricValue"] { font-size: 2.2rem; font-weight: 700; color: #58a6ff; text-align: center; }
-        div[data-testid="stMetricLabel"] { text-align: center; color: #8b949e; font-size: 0.9rem; }
-        .sub-header { font-size: 1.5rem; font-weight: 700; margin-top: 1.5rem; margin-bottom: 0.5rem; color: #c9d1d9; }
-        .desc-text { color: #8b949e; font-size: 0.95rem; margin-bottom: 1rem; }
+        .stApp {
+            background-color: #0f172a;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+        }
+        .main-title {
+            font-size: 2.6rem;
+            font-weight: 800;
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.2rem;
+            text-shadow: 0 2px 8px rgba(56, 189, 248, 0.15);
+        }
+        .subtitle {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+        }
+        .sub-header {
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-top: 2rem;
+            margin-bottom: 0.5rem;
+            color: #38bdf8;
+            border-left: 5px solid #38bdf8;
+            padding-left: 12px;
+        }
+        .desc-text {
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            margin-bottom: 1.5rem;
+        }
+        /* Custom Button Styling */
+        div.stButton > button {
+            background-color: #1e293b !important;
+            color: #f1f5f9 !important;
+            border: 1px solid #475569 !important;
+            border-radius: 8px !important;
+            padding: 0.6rem 1.2rem !important;
+            font-weight: 600 !important;
+            transition: all 0.2s ease !important;
+        }
+        div.stButton > button:hover {
+            background-color: #334155 !important;
+            border-color: #64748b !important;
+            color: #ffffff !important;
+        }
+        /* Primary/Action Button */
+        div.stButton > button[kind="primary"] {
+            background: linear-gradient(90deg, #0284c7, #4f46e5) !important;
+            color: #ffffff !important;
+            border: none !important;
+            box-shadow: 0 4px 10px rgba(2, 132, 199, 0.3) !important;
+        }
+        div.stButton > button[kind="primary"]:hover {
+            background: linear-gradient(90deg, #0369a1, #4338ca) !important;
+            box-shadow: 0 6px 15px rgba(2, 132, 199, 0.5) !important;
+        }
     </style>
     """, unsafe_allow_html=True)
 
@@ -247,11 +300,36 @@ def run_streamlit():
         am_count = len(st.session_state.processed_data[st.session_state.processed_data["Phân Loại"] == "Ấm"])
         rac_count = len(st.session_state.processed_data[st.session_state.processed_data["Phân Loại"] == "Rác"])
         
+        # Show high-contrast premium HTML cards for metric display
         col1, col2, col3, col4 = st.columns(4)
-        with col1: st.metric("TỔNG KHÁCH HÀNG", total_leads)
-        with col2: st.metric("KHÁCH HÀNG NÓNG", nong_count)
-        with col3: st.metric("KHÁCH HÀNG ẤM", am_count)
-        with col4: st.metric("KHÁCH HÀNG RÁC", rac_count)
+        with col1:
+            st.markdown(f"""
+            <div style="background: rgba(30, 41, 59, 0.8); border: 2px solid #38bdf8; border-radius: 12px; padding: 1.25rem; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                <div style="color: #38bdf8; font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Tổng Khách Hàng</div>
+                <div style="color: #ffffff; font-size: 2.8rem; font-weight: 800; margin-top: 0.5rem; line-height: 1;">{total_leads}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col2:
+            st.markdown(f"""
+            <div style="background: rgba(30, 41, 59, 0.8); border: 2px solid #10b981; border-radius: 12px; padding: 1.25rem; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                <div style="color: #10b981; font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Khách Hàng Nóng</div>
+                <div style="color: #ffffff; font-size: 2.8rem; font-weight: 800; margin-top: 0.5rem; line-height: 1;">{nong_count}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col3:
+            st.markdown(f"""
+            <div style="background: rgba(30, 41, 59, 0.8); border: 2px solid #f59e0b; border-radius: 12px; padding: 1.25rem; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                <div style="color: #f59e0b; font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Khách Hàng Ấm</div>
+                <div style="color: #ffffff; font-size: 2.8rem; font-weight: 800; margin-top: 0.5rem; line-height: 1;">{am_count}</div>
+            </div>
+            """, unsafe_allow_html=True)
+        with col4:
+            st.markdown(f"""
+            <div style="background: rgba(30, 41, 59, 0.8); border: 2px solid #ef4444; border-radius: 12px; padding: 1.25rem; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.3);">
+                <div style="color: #ef4444; font-size: 0.95rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em;">Khách Hàng Rác</div>
+                <div style="color: #ffffff; font-size: 2.8rem; font-weight: 800; margin-top: 0.5rem; line-height: 1;">{rac_count}</div>
+            </div>
+            """, unsafe_allow_html=True)
         
         st.markdown("---")
         
