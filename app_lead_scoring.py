@@ -207,8 +207,9 @@ def run_streamlit():
             try:
                 response = requests.get(sheet_url_input)
                 response.raise_for_status()
-                response.encoding = 'utf-8'  # Đảm bảo đọc đúng font chữ Tiếng Việt
-                csv_data = io.StringIO(response.text)
+                # Decode explicitly using utf-8-sig to handle BOM and ensure correct Vietnamese text
+                csv_text = response.content.decode('utf-8-sig')
+                csv_data = io.StringIO(csv_text)
                 df = pd.read_csv(csv_data)
                 df = df.fillna("")
                 
@@ -336,11 +337,11 @@ def run_cli():
     try:
         response = requests.get(SHEET_URL)
         response.raise_for_status()
-        response.encoding = 'utf-8'  # Đảm bảo đọc đúng font chữ Tiếng Việt
         
+        csv_text = response.content.decode('utf-8-sig')
         temp_csv = "temp_leads.csv"
         with open(temp_csv, "w", encoding="utf-8") as f:
-            f.write(response.text)
+            f.write(csv_text)
             
         df = pd.read_csv(temp_csv, encoding="utf-8")
         df = df.fillna("")
