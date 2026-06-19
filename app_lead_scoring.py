@@ -10,7 +10,7 @@ from streamlit_gsheets import GSheetsConnection
 # Configuration
 conn = st.connection("gsheets", type=GSheetsConnection)
 spreadsheet_id = "https://docs.google.com/spreadsheets/d/10W14zS9dL4w1G311MRFri10_XoWCSPCNPJsmITf_--s/edit"
-df = conn.read(spreadsheet=spreadsheet_id, worksheet="Trang tính 1", ttl="10m")
+df = conn.read(spreadsheet=spreadsheet_id, worksheet="leads_for_gsheet", ttl="10m")
 
 OUTPUT_FILE = "leads_scored_report.xlsx"
 
