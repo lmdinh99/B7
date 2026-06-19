@@ -5,9 +5,13 @@ import sys
 import pandas as pd
 import requests
 import streamlit as st
+from streamlit_gsheets import GSheetsConnection
 
 # Configuration
-SHEET_URL = "https://docs.google.com/spreadsheets/d/16tCAf_qqtgYZxoumYQKMEOdBhKE0wg5A/export?format=csv&gid=1542775777"
+conn = st.connection("gsheets", type=GSheetsConnection)
+spreadsheet_id = "16tCaF_qqtgYZxoumYQKME0dBhKE0wg5A"
+df = conn.read(spreadsheet=spreadsheet_id, worksheet="1542775777", ttl="10m")
+
 OUTPUT_FILE = "leads_scored_report.xlsx"
 
 # Helper to check budget >= 20 billion
