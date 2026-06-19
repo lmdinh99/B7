@@ -262,11 +262,7 @@ def run_streamlit():
     if st.button("📊 Tải dữ liệu & Chấm điểm từ Google Sheet", type="primary"):
         with st.spinner("Đang xử lý dữ liệu..."):
             try:
-                response = requests.get(sheet_url_input)
-                response.raise_for_status()
-                csv_text = response.content.decode('utf-8-sig')
-                csv_data = io.StringIO(csv_text)
-                df = pd.read_csv(csv_data)
+                df = conn.read(spreadsheet=sheet_url_input, worksheet="Sheet1", ttl="0")
                 df = df.fillna("")
                 
                 scores = []
